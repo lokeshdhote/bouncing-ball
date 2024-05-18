@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="container" class="w-[100%] h-screen bg-black relative overflow-hidden">
+        <div id="ball" class="w-10 h-10 bg-white rounded-full absolute"></div>
+        <div id="block" class="w-[20vw] h-4 bg-white absolute bottom-0"></div>
+    </div>
+    <script>
+        window.addEventListener("mousemove", (event) => {
+            const block = document.querySelector("#block");
+            const parent = block.parentElement;
+            const parentRect = parent.getBoundingClientRect();
+            const blockWidth = block.offsetWidth;
+            // console.log(parentRect)
+            let newX = event.clientX - parentRect.left;
+            if (newX < 0) {
+                newX = 0;
+            } else if (newX + blockWidth > parentRect.width) {
+                newX = parentRect.width - blockWidth;
+            }
+            
+            block.style.left = newX + 'px';
+            
+        });
+       
+        window.addEventListener("keydown", (event) => {
+            const block = document.querySelector("#block");
+            const parent = block.parentElement;
+            const parentRect = parent.getBoundingClientRect();
+            const blockWidth = block.offsetWidth;
+            const currentLeft = parseInt(window.getComputedStyle(block).left, 10);
+// console.log(currentLeft);
+            if (event.code === 'ArrowLeft') {
+                let newLeft = currentLeft - 10;
+                if (newLeft < 0) {
+                    newLeft = 0;
+                }
+                block.style.left = newLeft + 'px';
+            } else if (event.code === 'ArrowRight') {
+                let newLeft = currentLeft + 10;
+                if (newLeft + blockWidth > parentRect.width) {
+                    newLeft = parentRect.width - blockWidth;
+                }
+                block.style.left = newLeft + 'px';
+            }
+        });
+
+        const container = document.querySelector('#container');
+        const block = document.querySelector('#block');
+        const ball = document.querySelector('#ball');
+
+        let speed = 3; // Initial speed of the ball
+        let direction = 1; // Initial direction of the ball (+1: down, -1: up)
+        let ballSpeed = 1; // Speed of the ball
+        let ballDirectionX = 1; // Initial direction of the ball horizontally
+        const containerHeight = container.clientHeight;
+        const containerWidth = container.clientWidth;
+        const ballHeight = ball.offsetHeight;
+        const ballWidth = ball.offsetWidth;
+        const blockWidth = block.offsetWidth;
+        let gameRunning = true; // Flag to control the game state
+
+        function moveBall() {
+            if (!gameRunning) return; // If game is not running, stop the animation
+
+            // Calculate the new position of the ball vertically
+            let newPos = parseInt(ball.style.top) || 0;
+            newPos += ballSpeed * direction;
+
+            // Check if the ball hits the container boundaries vertically
+            if (newPos + ballHeight > containerHeight || newPos < 0) {
+                direction *= -1; // Reverse the direction vertically
+            }
+
+            // Calculate the new position of the ball horizontally
+            let newLeft = parseInt(ball.style.left) || 0;
+            newLeft += ballSpeed * ballDirectionX;
+
+            // Check if the ball hits the container boundaries horizontally
+            if (newLeft + ballWidth > containerWidth || newLeft < 0) {
+                ballDirectionX *= -1; // Reverse the direction horizontally
+            }
+
+            // Check if the ball hits the block
+            if (
+                newPos + ballHeight >= containerHeight - block.offsetHeight &&
+                newLeft + ballWidth >= parseInt(block.style.left) &&
+                newLeft <= parseInt(block.style.left) + blockWidth
+            ) {
+                ballSpeed += 0.5; // Increase ball speed
+                direction *= -1; // Reverse direction vertically
+            }
+
+            // Check if the ball misses the block and end the game
+            if (newPos + ballHeight >= containerHeight) {
+                endGame();
+                return;
+            }
+
+            // Update the position of the ball
+            ball.style.top = newPos + 'px';
+            ball.style.left = newLeft + 'px';
+
+            requestAnimationFrame(moveBall); // Continue the animation loop
+        }
+
+        function endGame() {
+            gameRunning = false;
+            alert("Game Over! You missed the block.");
+            restartGame();
+        }
+
+        function restartGame() {
+            // Reset ball position, speed, and direction
+            ball.style.top = '0px';
+            ball.style.left = '0px';
+            ballSpeed = 1;
+            direction = 1;
+            ballDirectionX = 1;
+
+            // Reset block position
+            block.style.left = '0px';
+
+            // Reset game state and restart animation loop
+            gameRunning = true;
+            moveBall();
+        }
+
+        // Start the animation loop
+        moveBall();
+
+        window.addEventListener("keydown", (event) => {
+            if (event.code === 'ArrowLeft') {
+                block.style.left = (parseInt(block.style.left) || 0) - 10 + 'px';
+            } else if (event.code === 'ArrowRight') {
+                block.style.left = (parseInt(block.style.left) || 0) + 10 + 'px';
+            }
+        });
+
+    </script>
+</body>
+</html>
